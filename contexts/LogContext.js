@@ -6,7 +6,14 @@ import {v4 as uuidv4} from 'uuid';
 const LogContext = createContext();
 
 export function LogContextProvider({children}) {
-  const [logs, setLogs] = useState([]);
+  const [logs, setLogs] = useState(
+    Array.from({length: 10}).map((_, index) => ({
+      id: uuidv4(),
+      title: `Log ${index}`,
+      body: `Log ${index}`,
+      date: new Date().toISOString(),
+    })),
+  );
   const onCreate = ({title, body, date}) => {
     if (title !== '' || body !== '') {
       const log = {
@@ -22,8 +29,18 @@ export function LogContextProvider({children}) {
       ]);
     }
   };
+
+  const onModify = modified => {
+    const nextLogs = logs.map(log => (log.id === modified.id ? modified : log));
+    setLogs(nextLogs);
+  };
+
+  const onRemove = id => {
+    const nextLogs = logs.filter(log => log.id !== id);
+    setLogs(nextLogs);
+  };
   return (
-    <LogContext.Provider value={{logs, onCreate}}>
+    <LogContext.Provider value={{logs, onCreate, onModify, onRemove}}>
       {children}
     </LogContext.Provider>
   );
